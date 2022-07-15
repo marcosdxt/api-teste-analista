@@ -1,0 +1,116 @@
+version: "3.3"
+services:
+    postgres:
+        container_name: easytech-postgres
+        restart: always
+        image: postgres  
+        networks:
+            - modulocker        
+        ports:  
+            - "5432:5432"
+        volumes:
+            - ./volumes/postgres:/var/lib/postgresql/data
+        environment: 
+            POSTGRES_PASSWORD: Postgres2021!
+            POSTGRES_DB: ews001
+            DB_EXTENSION: uuid-ossp
+
+    pgadmin:
+        container_name: easytech-pgadmin
+        restart: always
+        image: dpage/pgadmin4
+        networks:
+            - modulocker
+        ports: 
+            - "15432:80"            
+        environment: 
+            PGADMIN_DEFAULT_EMAIL: "marcos.aquino@easytech.com.br"
+            PGADMIN_DEFAULT_PASSWORD:   "PgAdmin2021!"    
+        depends_on: 
+            - postgres        
+        
+    mongo:
+        container_name: easytech-mongo
+        restart: always
+        image: mongo
+        ports:
+            - "27017:27017"
+        volumes:
+            - ./volumes/mongo:/data/db
+        environment:
+            MONGO_INITDB_ROOT_USERNAME: "root"
+            MONGO_INITDB_ROOT_PASSWORD: "easymongo2021!"
+            MONGO_INITDB_DATABASE : "project"
+        networks: 
+            - modulocker
+        
+    mongo-express:
+        container_name: easytech-mongo-express
+        restart: always
+        image: mongo-express
+        ports:
+         - 8081:8081
+        environment:
+                ME_CONFIG_MONGODB_SERVER : mongo
+                ME_CONFIG_MONGODB_PORT : 27017
+                ME_CONFIG_MONGODB_ENABLE_ADMIN : "true"
+                ME_CONFIG_MONGODB_AUTH_DATABASE : "admin"
+                ME_CONFIG_MONGODB_AUTH_USERNAME : "root"
+                ME_CONFIG_MONGODB_AUTH_PASSWORD : "easymongo2021!"
+                ME_CONFIG_BASICAUTH_USERNAME : "modulocker"
+                ME_CONFIG_BASICAUTH_PASSWORD : "easytech890"
+        networks:
+            - modulocker     
+        depends_on: 
+            - mongo
+
+    redis:
+        container_name: easytech-redis
+        hostname: redis
+        restart: always
+        image: redis
+        ports:
+            - "6379:6379"       
+        volumes:
+            - ./volumes/redis:/bitname/redis/data
+        environment:
+            ALLOW_EMPTY_PASSWORD: "no"
+            
+            REDIS_PASSWORD: "zzFtvwZC3Xkr3a6dug7L5hSzRB5v4L6d"
+        networks:
+            - modulocker               
+
+    redis-commander:
+        container_name: easytech-redis-commander
+        hostname: redis-commander
+        image: rediscommander/redis-commander:latest
+        restart: always
+        environment:
+          REDIS_HOSTS: "local:redis:6379"
+          HTTP_USER: "modulocker"
+          HTTP_PASSWORD: "easytech890"
+        ports:
+          - "8082:8081"
+        networks:
+            - modulocker             
+
+    rabbit:
+        container_name: easytech-rabbit
+        restart: always
+        image: rabbitmq:3-management
+        ports:
+            - "5672:5672"
+            - "15672:15672"
+        volumes:
+            - ./volumes/rabbit:/data
+        networks:
+            - modulocker
+        depends_on: 
+            - redis
+        environment:
+            RABBITMQ_DEFAULT_USER: "modulocker"
+            RABBITMQ_DEFAULT_PASS: "RSyngqkY9wmgCArxSSy2vvHW7HEB7Lbf"            
+
+networks: 
+    modulocker:
+        driver: bridge
